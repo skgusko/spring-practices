@@ -1,6 +1,6 @@
-﻿<%@ taglib uri="jakarta.tags.core" prefix="c" %>
-<%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
-<%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
+﻿<%@ taglib uri="jakarta.tags.core" prefix="c"%>
+<%@ taglib uri="jakarta.tags.fmt" prefix="fmt"%>
+<%@ taglib uri="jakarta.tags.functions" prefix="fn"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <html>
 <head>
@@ -25,10 +25,10 @@
 				<td>${vo.email }</td>
 			</tr>
 		</table>
+		<br>
 	</c:forEach>
-	<br>
 	<p>
-		<a href="${pageContext.request.contextPath}/WEB-INF/views/form.jsp">추가메일 등록</a>
+		<a href="${pageContext.request.contextPath }/form">추가메일 등록</a>
 	</p>
 	<br>
 </body>
