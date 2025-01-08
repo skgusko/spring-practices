@@ -49,39 +49,73 @@ public class JdbcContext {
 	}
 	
 
-	private <E> List<E> queryWithStatementStrategy(StatementStrategy statementStrategy, RowMapper<E> rowMapper) throws RuntimeException {
-		List<E> result = new ArrayList<>();
+	private <E> List<E> queryWithStatementStrategy(StatementStrategy statementStrategy, RowMapper<E> rowMapper) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		
-		try (
-			Connection conn = dataSource.getConnection();
-			PreparedStatement pstmt = statementStrategy.makeStatement(conn);
-			ResultSet rs = pstmt.executeQuery();
-		) {
+		try {
+			conn = DataSourceUtils.getConnection(dataSource);
+			pstmt = statementStrategy.makeStatement(conn);
+			rs = pstmt.executeQuery();
+			
+			List<E> result = new ArrayList<>();
+			
 			while (rs.next()) {
 				E e = rowMapper.mapRow(rs, rs.getRow()); //row 한 줄 씩 넣기 (findAll 메서드에서 바인딩될 객체 지정해둠) 
 				result.add(e);
 			}
 			
+			return result;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+				if (pstmt != null) {
+					pstmt.close();
+				}
+				if (conn != null) {
+					DataSourceUtils.releaseConnection(conn, dataSource);
+				}
+			} catch (SQLException ignore) {
+			}
 		}
-		
-		return result;
 	}
 	
 
 	private <E> E queryForObjectWithStatementStrategy(StatementStrategy statementStrategy, RowMapper<E> rowMapper) {
-		try (
-			Connection conn = dataSource.getConnection();
-			PreparedStatement pstmt = statementStrategy.makeStatement(conn);
-			ResultSet rs = pstmt.executeQuery();
-		) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		
+		try {
+			conn = DataSourceUtils.getConnection(dataSource);
+			pstmt = statementStrategy.makeStatement(conn);
+			rs = pstmt.executeQuery();
+
 			if (rs.next()) {
 				return rowMapper.mapRow(rs, rs.getRow()); //row 한 줄 씩 넣기 (findAll 메서드에서 바인딩될 객체 지정해둠) 
 			}
 			
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+				if (pstmt != null) {
+					pstmt.close();
+				}
+				if (conn != null) {
+					DataSourceUtils.releaseConnection(conn, dataSource);
+				}
+			} catch (SQLException ignore) {
+			}
+			
 		}
 		
 		return null;
@@ -102,33 +136,25 @@ public class JdbcContext {
 	}
 	
 	private int updateWithStatementStrategy(StatementStrategy statementStrategy) throws RuntimeException { //operation()
-		int count = 0;
+		Connection conn = null;
+		PreparedStatement pstmt = null;
 		
-		try (
-				Connection conn = DataSourceUtils.getConnection(dataSource); //ThreadLocal에서 커넥션 가져오기 
-				PreparedStatement pstmt = statementStrategy.makeStatement(conn);
-		) {
-			count = pstmt.executeUpdate();
+		try {
+				conn = DataSourceUtils.getConnection(dataSource); //ThreadLocal에서 커넥션 가져오기 
+				pstmt = statementStrategy.makeStatement(conn);
+				return pstmt.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (pstmt != null) {
+					pstmt.close();
+				}
+				if (conn != null) {
+					DataSourceUtils.releaseConnection(conn, dataSource);
+				}
+			} catch (SQLException ignore) {
+			}
 		}
-		return count;
 	}
-
-	
-
-	
-//	private int executeUpdateWithStatementStrategy(StatementStrategy statementStrategy) { //operation()
-//		int count = 0;
-//		
-//		try (
-//				Connection conn = dataSource.getConnection();
-//				PreparedStatement pstmt = statementStrategy.makeStatement(conn);
-//		) {
-//			count = pstmt.executeUpdate();
-//		} catch (SQLException e) {
-//			System.out.println("error: " + e);
-//		}
-//		return count;
-//	}
 }
