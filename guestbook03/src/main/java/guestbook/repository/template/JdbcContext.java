@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import guestbook.vo.GuestbookVo;
 
@@ -104,7 +105,7 @@ public class JdbcContext {
 		int count = 0;
 		
 		try (
-				Connection conn = dataSource.getConnection();
+				Connection conn = DataSourceUtils.getConnection(dataSource); //ThreadLocal에서 커넥션 가져오기 
 				PreparedStatement pstmt = statementStrategy.makeStatement(conn);
 		) {
 			count = pstmt.executeUpdate();

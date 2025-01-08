@@ -1,9 +1,5 @@
 package guestbook.controller;
 
-import java.util.Enumeration;
-import java.util.List;
-
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,17 +7,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import guestbook.repository.GuestbookRepository;
+import guestbook.service.GuestbookService;
 import guestbook.vo.GuestbookVo;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class GuestbookController {
-	private GuestbookRepository guestbookRepository;
+	private GuestbookService guestbookService;
 	
-	private GuestbookController(GuestbookRepository guestbookRepository) {
-		this.guestbookRepository = guestbookRepository;
+	private GuestbookController(GuestbookService guestbookService) {
+		this.guestbookService = guestbookService;
 	}
 	
 	@RequestMapping("/")
@@ -47,36 +42,27 @@ public class GuestbookController {
 		
 		*/
 		
-		model.addAttribute("list", guestbookRepository.findAll());
+		model.addAttribute("list", guestbookService.getContentsList());
 		
 		return "index";
 	}
 	
-//	@RequestMapping("/")
-//	public String index(Model model) {
-//		List<GuestbookVo> list = guestbookRepository.findAll();
-//		model.addAttribute("list", list);
-//		
-//		return "index";
-//	}
-	
 	@RequestMapping("/add")
 	public String add(GuestbookVo guestbookVo) {
-		guestbookRepository.insert(guestbookVo);
+		guestbookService.addContents(guestbookVo);
 		
 		return "redirect:/";
 	}
 	
 	@RequestMapping(value="/delete/{id}", method=RequestMethod.GET)
 	public String delete(@PathVariable("id") Long id) {
-//		model.addAttribute("id", id); (@PathVariable로 있는 경우 Model이 자동으로 addAttribute를 해줌) 
-		
 		return "delete";
 	}
 	
 	@RequestMapping(value="/delete/{id}", method=RequestMethod.POST)
-	public String delete(@PathVariable("id") Long id, @RequestParam("password") String password) {
-		guestbookRepository.deleteByIdAndPassword(id, password);
+	public String delete(@PathVariable("id") Long id, 
+						@RequestParam("password") String password) {
+		guestbookService.deleteContents(id, password);
 		
 		return "redirect:/";
 	}

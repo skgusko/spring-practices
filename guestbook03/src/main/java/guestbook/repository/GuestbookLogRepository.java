@@ -1,7 +1,10 @@
 package guestbook.repository;
 
+import org.springframework.stereotype.Repository;
+
 import guestbook.repository.template.JdbcContext;
 
+@Repository
 public class GuestbookLogRepository {
 	private JdbcContext jdbcContext;
 	
@@ -10,7 +13,7 @@ public class GuestbookLogRepository {
 	}
 	
 	public int insert() {
-		return jdbcContext.update("insert into guestbook_log values(current_date(), 1");
+		return jdbcContext.update("insert into guestbook_log values(current_date(), 1)");
 	}
 	
 	public int update() {
