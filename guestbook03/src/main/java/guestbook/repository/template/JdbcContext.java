@@ -9,7 +9,10 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+
+import guestbook.vo.GuestbookVo;
 
 public class JdbcContext {
 	
@@ -18,8 +21,8 @@ public class JdbcContext {
 		this.dataSource = dataSource;
 	}
 	
-	public <E> List<E> queryForList(String sql, RowMapper<E> rowMapper) {
-		return exequeryForListUpdateWithStatementStrategy(new StatementStrategy() {
+	public <E> List<E> query(String sql, RowMapper<E> rowMapper) {
+		return queryWithStatementStrategy(new StatementStrategy() {
 
 			@Override
 			public PreparedStatement makeStatement(Connection connection) throws SQLException {
@@ -29,13 +32,29 @@ public class JdbcContext {
 		}, rowMapper);
 	}
 	
-	private <E> List<E> exequeryForListUpdateWithStatementStrategy(StatementStrategy statementStrategy, RowMapper<E> rowMapper) throws RuntimeException {
+	public <E> E queryForObject(String sql, Object[] parameters, RowMapper<E> rowMapper) {
+		return queryForObjectWithStatementStrategy(new StatementStrategy() {
+			@Override
+			public PreparedStatement makeStatement(Connection connection) throws SQLException {
+				PreparedStatement pstmt = connection.prepareStatement(sql);
+				for (int i = 0; i < parameters.length; i++) {
+					pstmt.setObject(i+1, parameters[i]); 
+				}
+				
+				return pstmt;
+			}
+			
+		}, rowMapper);
+	}
+	
+
+	private <E> List<E> queryWithStatementStrategy(StatementStrategy statementStrategy, RowMapper<E> rowMapper) throws RuntimeException {
 		List<E> result = new ArrayList<>();
 		
 		try (
-				Connection conn = dataSource.getConnection();
-				PreparedStatement pstmt = statementStrategy.makeStatement(conn);
-				ResultSet rs = pstmt.executeQuery();
+			Connection conn = dataSource.getConnection();
+			PreparedStatement pstmt = statementStrategy.makeStatement(conn);
+			ResultSet rs = pstmt.executeQuery();
 		) {
 			while (rs.next()) {
 				E e = rowMapper.mapRow(rs, rs.getRow()); //row 한 줄 씩 넣기 (findAll 메서드에서 바인딩될 객체 지정해둠) 
@@ -48,10 +67,28 @@ public class JdbcContext {
 		
 		return result;
 	}
+	
+
+	private <E> E queryForObjectWithStatementStrategy(StatementStrategy statementStrategy, RowMapper<E> rowMapper) {
+		try (
+			Connection conn = dataSource.getConnection();
+			PreparedStatement pstmt = statementStrategy.makeStatement(conn);
+			ResultSet rs = pstmt.executeQuery();
+		) {
+			if (rs.next()) {
+				return rowMapper.mapRow(rs, rs.getRow()); //row 한 줄 씩 넣기 (findAll 메서드에서 바인딩될 객체 지정해둠) 
+			}
+			
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		
+		return null;
+	}
 
 	// 사용자인 Client가 좀 더 깔끔하게 사용할 수 있도록 아래처럼 랩핑하여 구현 
-	public int executeUpdate(String sql, Object[] parameters) {
-		return executeUpdateWithStatementStrategy(new StatementStrategy() {
+	public int update(String sql, Object... parameters) {
+		return updateWithStatementStrategy(new StatementStrategy() {
 			@Override
 			public PreparedStatement makeStatement(Connection connection) throws SQLException {
 				PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -63,7 +100,7 @@ public class JdbcContext {
 		});
 	}
 	
-	private int executeUpdateWithStatementStrategy(StatementStrategy statementStrategy) throws RuntimeException { //operation()
+	private int updateWithStatementStrategy(StatementStrategy statementStrategy) throws RuntimeException { //operation()
 		int count = 0;
 		
 		try (
@@ -76,6 +113,8 @@ public class JdbcContext {
 		}
 		return count;
 	}
+
+	
 
 	
 //	private int executeUpdateWithStatementStrategy(StatementStrategy statementStrategy) { //operation()

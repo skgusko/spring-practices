@@ -26,6 +26,7 @@ public class GuestbookController {
 	
 	@RequestMapping("/")
 	public String index(HttpServletRequest request, Model model) {
+		/*
 		ServletContext sc = request.getServletContext();
 		Enumeration<String> e = sc.getAttributeNames();
 		
@@ -44,8 +45,9 @@ public class GuestbookController {
 		
 		System.out.println(ac1 == ac2);
 		
-		List<GuestbookVo> list = guestbookRepository.findAll();
-		model.addAttribute("list", list);
+		*/
+		
+		model.addAttribute("list", guestbookRepository.findAll());
 		
 		return "index";
 	}
