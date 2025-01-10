@@ -23,6 +23,7 @@
 =======================================================
 2. videosystem: Explicit configuration(Bean configuration)
 
+[src/main/java]
     videosystem
        |--- DVDPlayer.java
        |--- DigitalVideoDisc.java
@@ -32,18 +33,15 @@
        |--- DVDPlayerConfig.java(핵심. 빈 설정을 자바로 하는 법)
 
     config.videosystem.mixing
-       |--- DVDConfig.java
-       |--- DVDPlayerConfig.java
-       |--- VideoSystemConfig.java
+       |--- DVDConfig.java (DVD 설정)
+       |--- DVDPlayerConfig.java (DVDPlayer 설정)
+       |--- VideoSystemConfig.java (두 개 모아서)
 
 [src/main/resources]
-
     config.videosystem
        |--- applicationContext.xml
 
-
 [src/test/java]
-
     config.videosystem
        |--- DVDPlayerJavaConfigTest.java
        |--- DVDPlayerXmlConfigTest.java
